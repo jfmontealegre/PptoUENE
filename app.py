@@ -25,8 +25,13 @@ load_dotenv(find_dotenv())
 
 # 1b) Carga del modelo entrenado
 @st.cache_resource
-def load_model(path: str = "modelo_imputacion_uene.pkl"):
-    return joblib.load(path)
+def load_model(path: str = "models/modelo_imputacion_uene.pkl"):
+    # Construye la ruta absoluta basada en la ubicación de este archivo
+    model_file = Path(__file__).parent / path
+    if not model_file.exists():
+        st.error(f"❌ Modelo no encontrado en {model_file}")
+        return None
+    return joblib.load(model_file)
 
 model = load_model()  # ← Cargamos el pipeline
 
@@ -816,4 +821,5 @@ with tab1:
 # — Tab Dashboard
 with tab2:
     st.header("📈 Visualización Dashboard")
+
     st.markdown("_Aquí irán los KPIs, gráficas y filtros._")
