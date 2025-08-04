@@ -26,12 +26,12 @@ load_dotenv(find_dotenv())
 # 1b) Carga del modelo entrenado
 @st.cache_resource
 def load_model():
-    # __file__ apunta a app.py, así que parent es la carpeta del proyecto
-    base_dir   = Path(__file__).parent  
+    # __file__ apunta a app.py
+    base_dir   = Path(__file__).parent
     model_path = base_dir / "models" / "modelo_imputacion_uene.pkl"
 
     if not model_path.exists():
-        st.error(f"❌ No se encontró el modelo en:\n{model_path}")
+        st.error(f"❌ Modelo no encontrado en:\n{model_path}")
         st.stop()
 
     return joblib.load(model_path)
@@ -74,18 +74,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# 3) Carga el modelo pre-entrenado
-from pathlib import Path
-@st.cache_resource
-def load_model(path: str = "modelo_imputacion_uene.pkl"):
-    model_file = Path(__file__).parent / path
-    return joblib.load(model_file)
-
-model = load_model()
-
-model = load_model()
-
 
 # 3) Inicializar session_state
 if "logueado" not in st.session_state:
@@ -828,4 +816,5 @@ with tab2:
     st.header("📈 Visualización Dashboard")
 
     st.markdown("_Aquí irán los KPIs, gráficas y filtros._")
+
 
