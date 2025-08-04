@@ -812,10 +812,97 @@ with tab1:
         )
 
 # — Tab Dashboard
+# — Tab Dashboard —
 with tab2:
     st.header("📈 Visualización Dashboard")
 
-    st.markdown("_Aquí irán los KPIs, gráficas y filtros._")
+    # 1) Introducción narrativa
+    st.markdown(
+        """
+        Bienvenido al **Dashboard Presupuestal UENE 2026**.  
+        Aquí podrás explorar de un vistazo cómo se comportan los ingresos y gastos
+        de cada unidad, identificar rápidamente saldos positivos o alertas,
+        y profundizar en los detalles cuando lo necesites.
+        """
+    )
+
+    # 2) Carga y prepara datos
+    ingresos_df = load_ingresos().rename(columns={'centro':'Unidad','ingreso':'Ingresos'})
+    gastos_df   = load_gastos().rename(columns={'centro':'Unidad','gastos':'Gastos'})
+    df_flow     = ingresos_df.merge(gastos_df, on='Unidad', how='left').fillna(0)
+    df_flow['Saldo'] = df_flow['Ingresos'] - df_flow['Gastos']
+
+    # 3) KPIs principales
+    total_ing = df_flow['Ingresos'].sum()
+    total_gas = df_flow['Gastos'].sum()
+    total_sal = df_flow['Saldo'].sum()
+
+    st.markdown("---")
+    st.subheader("🔑 Indicadores Clave")
+    k1, k2, k3 = st.columns(3)
+    k1.metric("Total Ingresos", f"${total_ing:,.0f}", help="Suma de todos los ingresos asignados")
+    k2.metric("Total Gastos",   f"${total_gas:,.0f}", help="Suma de todos los gastos registrados")
+    k3.metric("Saldo Total",     f"${total_sal:,.0f}", 
+              f"{'👍 Positivo' if total_sal>=0 else '⚠️ Negativo'}",
+              help="Balance general entre ingresos y gastos")
+    
+    # Comentario de storytelling sobre los KPIs
+    if total_sal < 0:
+        st.warning(
+            "¡Atención! El balance total es **negativo**. "
+            "Revisa las unidades con mayores sobrecostos en la gráfica inferior para tomar acciones."
+        )
+    else:
+        st.success(
+            "El balance general es **positivo**. ¡Buen trabajo manteniendo los gastos bajo control!"
+        )
+
+    st.markdown("---")
+
+    # 4) Gráfica Ingresos vs Gastos por Unidad
+    st.subheader("📊 Distribución por Unidad")
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.bar(df_flow['Unidad'], df_flow['Ingresos'],   label="Ingresos")
+    ax.bar(df_flow['Unidad'], df_flow['Gastos'],     
+           bottom=df_flow['Ingresos'], label="Gastos")
+    ax.set_ylabel("Pesos ($)")
+    ax.set_xticks(range(len(df_flow['Unidad'])))
+    ax.set_xticklabels(df_flow['Unidad'], rotation=45, ha='right')
+    ax.legend()
+    st.pyplot(fig)
+
+    # Texto narrativo sobre la gráfica
+    st.markdown(
+        """
+        En esta gráfica de barras apiladas puedes comparar, para cada unidad, 
+        cuánto se ha asignado (Ingresos) y cuánto se ha consumido (Gastos).  
+        - Las unidades donde la sección naranja (Gastos) se aproxima o supera a la azul (Ingresos) 
+          requieren tu atención inmediata.  
+        - Fíjate en el caso de **Unidad X**, cuyos gastos ya superan el ingreso asignado.
+        """
+    )
+
+    st.markdown("---")
+
+    # 5) Tabla de detalle
+    st.subheader("📋 Detalle por Unidad")
+    st.dataframe(df_flow.style.format({
+        "Ingresos":   "${:,.0f}",
+        "Gastos":     "${:,.0f}",
+        "Saldo":      "${:,.0f}"
+    }), use_container_width=True)
+
+    st.markdown(
+        """
+        **Próximos pasos sugeridos**:  
+        1. Filtrar las unidades con saldo negativo.  
+        2. Revisar los registros de gasto para entender las partidas más grandes.  
+        3. Ajustar el plan presupuestal o solicitar reasignaciones.
+        """
+    )
+
 
 
 
