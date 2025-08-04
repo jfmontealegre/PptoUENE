@@ -714,7 +714,7 @@ with tab1:
                     load_gastos.clear()
                 except:
                     pass
-                st.experimental_rerun()
+                st.rerun()
 
         # — ELIMINAR —
         elif accion == "Eliminar":
@@ -816,5 +816,6 @@ with tab2:
     st.header("📈 Visualización Dashboard")
 
     st.markdown("_Aquí irán los KPIs, gráficas y filtros._")
+
 
 
