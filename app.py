@@ -885,25 +885,45 @@ with tab2:
     st.markdown("---")
 
     # 4) Gasto por Concepto de Gasto
-    st.subheader("📊 Por Concepto de Gasto")
-    # Carga tus registros y agrupa
+    # 3) Gráfica de barras de Ingresos vs Gastos
+    st.subheader("📊 Ingresos vs Gastos por Unidad")
+ 
+    import numpy as np
+
+    fig1, ax1 = plt.subplots()
+    x     = np.arange(len(df_mia))
+    ancho = 0.35
+
+    ax1.bar(x - ancho/2, df_mia['Ingresos'] / 1_000, ancho, label="Ingresos")
+    ax1.bar(x + ancho/2, df_mia['Gastos']   / 1_000, ancho, label="Gastos")
+
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(df_mia['Unidad'], rotation=0, ha='center')
+    ax1.set_ylabel("Miles de pesos")
+    ax1.legend()
+
+    plt.tight_layout()
+    st.pyplot(fig1)
+    
+    # Gráfico 2: Por Concepto de Gasto — barras **horizontales**
+    #st.subheader("📊 Por Concepto de Gasto")
     df_regs = load_user_records(st.session_state["usuario"])
-    # Calcula gasto total por concepto
-    df_regs['Gasto'] = df_regs['cantidad'] * df_regs['valor_unitario']
+    df_regs["Gasto"] = df_regs["cantidad"] * df_regs["valor_unitario"]
     df_concept = (
-        df_regs.groupby('concepto_gasto')['Gasto']
+        df_regs.groupby("concepto_gasto")["Gasto"]
         .sum()
-        .sort_values(ascending=False)
+        .sort_values(ascending=True)
         .reset_index()
     )
-    # Gráfica de barras
+
     fig2, ax2 = plt.subplots()
-    ax2.bar(
-        df_concept['concepto_gasto'], 
-        df_concept['Gasto'] / 1_000
+    ax2.barh(
+        df_concept["concepto_gasto"],
+        df_concept["Gasto"] / 1_000
     )
-    ax2.set_ylabel("Gasto (miles de pesos)")
-    ax2.set_xticklabels(df_concept['concepto_gasto'], rotation=0, ha='center')
+    ax2.set_xlabel("Gasto (miles de pesos)")
+    ax2.set_ylabel("Concepto de Gasto")
+    plt.tight_layout()
     st.pyplot(fig2)
 
     st.markdown(
@@ -912,6 +932,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
