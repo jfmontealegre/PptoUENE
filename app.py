@@ -437,19 +437,19 @@ accion = mostrar_sidebar()
 
 
 # — Título y tabs
-col_logo, col_titulo = st.columns([1, 6])  # Ajusta proporciones según el tamaño del logo
+col_logo, col_titulo = st.columns([1, 8])  # Ajusta proporciones según el tamaño del logo
 
 with col_logo:
-    st.image("images/icono-energia.png", width=100)
+    st.image("images/icono-energia.png", width=70)
     
 with col_titulo:
-    st.markdown("<h1 style='margin-bottom: 0;'>Gestión Presupuestal UENE 2026</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='margin-bottom: 0;'>Gestión Presupuestal UENE 2026</h3>", unsafe_allow_html=True)
 tab1, tab2 = st.tabs(["📑 Presupuesto", "📊 Dashboard"])
 
 # — Tab Presupuesto
 with tab1:
     if accion == "Agregar":
-        st.header("➕ Agregar Registro Presupuestal")
+        st.markdown("<h3>➕ Agregar Registro Presupuestal</h3>", unsafe_allow_html=True)
 
         # 1) Traer datos fresh de ingresos, gastos y unidades
         ingresos_df = load_ingresos()
@@ -817,8 +817,8 @@ with tab1:
 # — Tab Dashboard —
 # — Tab Dashboard —
 with tab2:
-    st.header("📈 Visualización Dashboard")
-
+    
+    st.markdown("<h3>📈 Visualización Dashboard</h3>", unsafe_allow_html=True)
     # Introducción breve
     st.markdown(
         """
@@ -923,6 +923,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
