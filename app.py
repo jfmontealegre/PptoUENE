@@ -603,107 +603,107 @@ with tab1:
                 st.error(f"Error: {e}")
 
         elif accion == "Editar":
-    st.header("✏️ Editar Registro")
-    id_ed = st.text_input("ID a editar", key="id_ed")
-
-    load_flag = f"loaded_{id_ed}"
-    data_key  = f"data_{id_ed}"
-
-    # 1) Botón para cargar datos
-    if st.button("Cargar datos", key="load_edit"):
-        cn  = conectar_db()
-        cur = cn.cursor()
-        cur.execute("""
-            SELECT 
-              id, item, categoria, grupo, centro_gestor, unidad_codigo,
-              concepto_gasto, descripcion, cantidad, valor_unitario,
-              fecha_inicio, imputacion
-            FROM presupuesto_registros
-            WHERE id = %s
-        """, (id_ed,))
-        row = cur.fetchone()
-        cols = [d[0] for d in cur.description]
-        cur.close(); cn.close()
-
-        if not row:
-            st.warning("❌ El ID no existe.")
-        else:
-            st.session_state[data_key] = dict(zip(cols, row))
-            st.session_state[load_flag] = True
-
-    # 2) Si ya cargamos los datos, mostramos el formulario
-    if st.session_state.get(load_flag, False):
-        data = st.session_state[data_key]
-
-        with st.form("form_edit", clear_on_submit=True):
-            item2           = st.text_input("Item", value=data["item"], key="item2")
-            categoria2      = st.text_input("Categoría", value=data["categoria"], key="categoria2")
-            grupo2          = st.text_input("Grupo", value=data["grupo"], key="grupo2")
-            centro2         = st.text_input("Centro Gestor", value=data["centro_gestor"], key="centro2")
-            unidad2         = st.text_input("Unidad", value=data["unidad_codigo"], key="unidad2")
-            conc2           = st.text_input("Concepto de Gasto", value=data["concepto_gasto"], key="conc2")
-            desc2           = st.text_area("Descripción del Gasto", value=data["descripcion"], key="desc2")
-            cantidad2       = st.number_input("Cantidad", min_value=0, value=int(data["cantidad"]), key="cantidad2")
-            valor_unit2     = st.number_input("Valor Unitario", min_value=0.0, format="%.2f", value=float(data["valor_unitario"]), key="valor2")
-            fecha_i2        = st.date_input("Fecha Inicio de Proceso", value=pd.to_datetime(data["fecha_inicio"]).date(), key="fecha2")
-            enviar2         = st.form_submit_button("Actualizar")
-
-        # 3) Al enviar, actualizamos DB y refrescamos caches
-        if enviar2:
-            cn3, cur3 = conectar_db(), None
-            try:
-                cur3 = cn3.cursor()
-                cur3.execute("""
-                    UPDATE presupuesto_registros
-                       SET item=%s,
-                           categoria=%s,
-                           grupo=%s,
-                           centro_gestor=%s,
-                           unidad_codigo=%s,
-                           concepto_gasto=%s,
-                           descripcion=%s,
-                           cantidad=%s,
-                           valor_unitario=%s,
-                           fecha_inicio=%s,
-                           accion='Editar'
-                     WHERE id=%s
-                """, (
-                    item2, categoria2, grupo2, centro2, unidad2,
-                    conc2, desc2, cantidad2, valor_unit2, fecha_i2,
-                    id_ed
-                ))
-                cn3.commit()
-                st.success("✅ Registro actualizado correctamente.")
-            except Exception as e:
-                st.error(f"❌ Error al actualizar: {e}")
-            finally:
-                if cur3: cur3.close()
-                cn3.close()
-
-            # 4) Actualizo el registro en session_state
-            st.session_state[data_key] = {
-                **data,
-                "item":           item2,
-                "categoria":      categoria2,
-                "grupo":          grupo2,
-                "centro_gestor":  centro2,
-                "unidad_codigo":  unidad2,
-                "concepto_gasto": conc2,
-                "descripcion":    desc2,
-                "cantidad":       cantidad2,
-                "valor_unitario": valor_unit2,
-                "fecha_inicio":   fecha_i2.strftime("%Y-%m-%d")
-            }
-
-            # 5) Limpio caché de ingresos/gastos y de registros de usuario
-            for fn in (load_ingresos, load_gastos, load_user_records):
-                try:
-                    fn.clear()
-                except Exception:
-                    pass
-
-            # 6) Forzar recarga completa (sidebar, Ver Todo y Descargar)
-            st.erun()
+            st.header("✏️ Editar Registro")
+            id_ed = st.text_input("ID a editar", key="id_ed")
+        
+            load_flag = f"loaded_{id_ed}"
+            data_key  = f"data_{id_ed}"
+        
+            # 1) Botón para cargar datos
+            if st.button("Cargar datos", key="load_edit"):
+                cn  = conectar_db()
+                cur = cn.cursor()
+                cur.execute("""
+                    SELECT 
+                      id, item, categoria, grupo, centro_gestor, unidad_codigo,
+                      concepto_gasto, descripcion, cantidad, valor_unitario,
+                      fecha_inicio, imputacion
+                    FROM presupuesto_registros
+                    WHERE id = %s
+                """, (id_ed,))
+                row = cur.fetchone()
+                cols = [d[0] for d in cur.description]
+                cur.close(); cn.close()
+        
+                if not row:
+                    st.warning("❌ El ID no existe.")
+                else:
+                    st.session_state[data_key] = dict(zip(cols, row))
+                    st.session_state[load_flag] = True
+        
+            # 2) Si ya cargamos los datos, mostramos el formulario
+            if st.session_state.get(load_flag, False):
+                data = st.session_state[data_key]
+        
+                with st.form("form_edit", clear_on_submit=True):
+                    item2           = st.text_input("Item", value=data["item"], key="item2")
+                    categoria2      = st.text_input("Categoría", value=data["categoria"], key="categoria2")
+                    grupo2          = st.text_input("Grupo", value=data["grupo"], key="grupo2")
+                    centro2         = st.text_input("Centro Gestor", value=data["centro_gestor"], key="centro2")
+                    unidad2         = st.text_input("Unidad", value=data["unidad_codigo"], key="unidad2")
+                    conc2           = st.text_input("Concepto de Gasto", value=data["concepto_gasto"], key="conc2")
+                    desc2           = st.text_area("Descripción del Gasto", value=data["descripcion"], key="desc2")
+                    cantidad2       = st.number_input("Cantidad", min_value=0, value=int(data["cantidad"]), key="cantidad2")
+                    valor_unit2     = st.number_input("Valor Unitario", min_value=0.0, format="%.2f", value=float(data["valor_unitario"]), key="valor2")
+                    fecha_i2        = st.date_input("Fecha Inicio de Proceso", value=pd.to_datetime(data["fecha_inicio"]).date(), key="fecha2")
+                    enviar2         = st.form_submit_button("Actualizar")
+        
+                # 3) Al enviar, actualizamos DB y refrescamos caches
+                if enviar2:
+                    cn3, cur3 = conectar_db(), None
+                    try:
+                        cur3 = cn3.cursor()
+                        cur3.execute("""
+                            UPDATE presupuesto_registros
+                               SET item=%s,
+                                   categoria=%s,
+                                   grupo=%s,
+                                   centro_gestor=%s,
+                                   unidad_codigo=%s,
+                                   concepto_gasto=%s,
+                                   descripcion=%s,
+                                   cantidad=%s,
+                                   valor_unitario=%s,
+                                   fecha_inicio=%s,
+                                   accion='Editar'
+                             WHERE id=%s
+                        """, (
+                            item2, categoria2, grupo2, centro2, unidad2,
+                            conc2, desc2, cantidad2, valor_unit2, fecha_i2,
+                            id_ed
+                        ))
+                        cn3.commit()
+                        st.success("✅ Registro actualizado correctamente.")
+                    except Exception as e:
+                        st.error(f"❌ Error al actualizar: {e}")
+                    finally:
+                        if cur3: cur3.close()
+                        cn3.close()
+        
+                    # 4) Actualizo el registro en session_state
+                    st.session_state[data_key] = {
+                        **data,
+                        "item":           item2,
+                        "categoria":      categoria2,
+                        "grupo":          grupo2,
+                        "centro_gestor":  centro2,
+                        "unidad_codigo":  unidad2,
+                        "concepto_gasto": conc2,
+                        "descripcion":    desc2,
+                        "cantidad":       cantidad2,
+                        "valor_unitario": valor_unit2,
+                        "fecha_inicio":   fecha_i2.strftime("%Y-%m-%d")
+                    }
+        
+                    # 5) Limpio caché de ingresos/gastos y de registros de usuario
+                    for fn in (load_ingresos, load_gastos, load_user_records):
+                        try:
+                            fn.clear()
+                        except Exception:
+                            pass
+        
+                    # 6) Forzar recarga completa (sidebar, Ver Todo y Descargar)
+                    st.rerun()
     
 
         # — ELIMINAR —
@@ -892,6 +892,7 @@ with tab2:
        # 3. Ajustar el plan presupuestal o solicitar reasignaciones.
         #"""
     #)
+
 
 
 
