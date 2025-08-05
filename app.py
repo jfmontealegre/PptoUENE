@@ -838,17 +838,17 @@ with tab2:
     c1, c2, c3 = st.columns(3)
     c1.metric(
         "Ingresos Asignados",
-        f"{total_ing/1_000:,.1f}",
+        f"{total_ing/1_000:,.0f}",
         help="Suma de ingresos asignados (en miles)"
     )
     c2.metric(
         "Gastos Registrados",
-        f"{total_gas/1_000:,.1f}",
+        f"{total_gas/1_000:,.0f}",
         help="Suma de gastos registrados (en miles)"
     )
     c3.metric(
         "Saldo Disponible",
-        f"{total_sal/1_000:,.1f}",
+        f"{total_sal/1_000:,.0f}",
         f"{'👍 Positivo' if total_sal>=0 else '⚠️ Negativo'}",
         help="Balance entre ingresos y gastos (en miles)"
     )
@@ -912,6 +912,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
