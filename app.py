@@ -451,139 +451,151 @@ with tab1:
     if accion == "Agregar":
         st.header("➕ Agregar Registro Presupuestal")
 
-        # 1) Datos fresh de ingresos y gastos
+        # 1) Traer datos fresh de ingresos, gastos y unidades
         ingresos_df = load_ingresos()
         gastos_df   = load_gastos()
         unidades    = obtener_unidades(st.session_state["usuario"])
 
-        # Solo usuarios con unidades
-        if st.session_state["usuario"] == "admin" or not unidades:
-            st.warning("Solo los usuarios con unidades asignadas pueden agregar registros.")
+        # Solo usuarios con unidades asignadas
+        if not unidades:
+            st.warning("❌ No tienes unidades asignadas.")
             st.stop()
 
-        # 2) Formulario
+        # 2) Variables “ocultas” para Grupo, Centro y Unidad
+        grupo  = "21 Funcionamiento"     # valor por defecto
+        centro = unidades[0]             # primera unidad del usuario
+        unidad = unidades[0]
+
+        # 3) Calcular saldo de la unidad oculta
+        ingreso_sel = float(
+            ingresos_df.loc[ingresos_df['centro'] == centro, 'ingreso']
+            .iloc[0]
+        ) if centro in ingresos_df['centro'].values else 0.0
+        gasto_sel = float(
+            gastos_df.loc[gastos_df['centro'] == centro, 'gastos']
+            .iloc[0]
+        ) if centro in gastos_df['centro'].values else 0.0
+        saldo_disp = ingreso_sel - gasto_sel
+
+        # 4) Formulario simplificado
         with st.form("form_add", clear_on_submit=True):
-            item      = f"GE{st.session_state['contador_item']:04d}"
+            # Item auto-incremental
+            item = f"GE{st.session_state['contador_item']:04d}"
             st.text_input("Item", value=item, disabled=True)
-            categoria = st.radio("Categoría", ["AGOP","3.1","Contratos","Vigencias Futuras"], horizontal=True)
-            grupo     = st.selectbox("Grupo", ["21 Funcionamiento","23 Inversión","24 Operación"])
 
-            centro = st.selectbox("Centro Gestor", unidades)
-            unidad = st.selectbox("Unidad", unidades)
-
-            # Saldo disponible
-            ingreso_sel = float(
-                ingresos_df.loc[ingresos_df['centro']==centro, 'ingreso'].iloc[0]
-                if centro in ingresos_df['centro'].values else 0.0
+            # Categoría
+            categoria = st.radio(
+                "Categoría",
+                ["AGOP", "3.1", "Contratos", "Vigencias Futuras"],
+                horizontal=True
             )
-            gasto_sel = float(
-                gastos_df.loc[gastos_df['centro']==centro, 'gastos'].iloc[0]
-                if centro in gastos_df['centro'].values else 0.0
-            )
-            saldo_disp = ingreso_sel - gasto_sel
-            #st.markdown(f"**Saldo disponible:** ${saldo_disp:,.0f}")
 
-            # Resto de inputs
-            lista_conceptos = obtener_conceptos(unidad)
-            conc_txt        = st.selectbox("Concepto de Gasto", lista_conceptos)
-            desc            = st.text_area("Descripción del Gasto")
-            cantidad        = st.number_input("Cantidad", min_value=1, value=1)
-            valor_u         = st.number_input("Valor Unitario", min_value=0.0, format="%.2f")
-            fecha_i         = st.date_input("Fecha Inicio de Proceso")
+            # Concepto de Gasto
+            conceptos = obtener_conceptos(unidad)
+            concepto  = st.selectbox("Concepto de Gasto", conceptos)
 
-            nuevo_gasto = cantidad * valor_u
-            if nuevo_gasto > saldo_disp:
+            # Descripción, Cantidad, Valor Unitario
+            descripcion      = st.text_area("Descripción del Gasto")
+            cantidad         = st.number_input("Cantidad", min_value=1, value=1)
+            valor_unitario   = st.number_input("Valor Unitario", min_value=0.0, format="%.2f")
+            fecha_inicio     = st.date_input("Fecha Inicio de Proceso")
+
+            # Cálculo y visualización de Valor Total
+            valor_total = cantidad * valor_unitario
+            st.markdown(f"**Valor Total:** ${valor_total:,.0f}")
+
+            # Validación de saldo
+            if valor_total > saldo_disp:
                 st.error("⚠️ Este gasto excede tu saldo disponible.")
-            enviar = st.form_submit_button("Guardar e Imputar", disabled=(nuevo_gasto > saldo_disp))
+            enviar = st.form_submit_button("Guardar e Imputar", disabled=(valor_total > saldo_disp))
 
-        # 3) Lógica tras submit
+        # 5) Lógica al enviar
         if enviar:
-            # 3.1 Predicción
+            # 5.1) Predecir imputación
             df_in = pd.DataFrame([{
                 "Unidad": unidad,
-                "Concepto de Gasto": conc_txt,
-                "Descripcion del Gasto": desc
+                "Concepto de Gasto": concepto,
+                "Descripcion del Gasto": descripcion
             }])
             pred = model.predict(df_in)[0]
 
-            # 3.2 INSERT presupuesto_registros + capturar id
-            cn1, cur1 = conectar_db(), None
-            try:
-                cur1 = cn1.cursor()
-                cur1.execute(
-                    """
-                    INSERT INTO presupuesto_registros
-                      (item,categoria,grupo,centro_gestor,unidad_codigo,
-                       concepto_gasto,descripcion,cantidad,valor_unitario,
-                       fecha_inicio,created_by,imputacion,accion)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    """,
-                    (
-                        item, categoria, grupo, centro, unidad,
-                        conc_txt, desc, cantidad, valor_u,
-                        fecha_i, st.session_state["usuario"], pred,
-                        "Agregar"
-                    )
+            # 5.2) Insertar en presupuesto_registros y capturar el nuevo ID
+            cn1  = conectar_db()
+            cur1 = cn1.cursor()
+            cur1.execute(
+                """
+                INSERT INTO presupuesto_registros
+                  (item,categoria,grupo,centro_gestor,unidad_codigo,
+                   concepto_gasto,descripcion,cantidad,valor_unitario,
+                   fecha_inicio,created_by,imputacion,accion)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    item, categoria, grupo, centro, unidad,
+                    concepto, descripcion, cantidad, valor_unitario,
+                    fecha_inicio, st.session_state["usuario"], pred,
+                    "Agregar"
                 )
-                inserted_id = cur1.lastrowid
-            finally:
-                if cur1: cur1.close()
-                cn1.close()
+            )
+            inserted_id = cur1.lastrowid
+            cn1.commit()
+            cur1.close()
+            cn1.close()
 
-            # 3.3 INSERT registros_usuarios
+            # 5.3) Insertar en registros_usuarios
             p = parse_imputacion(pred)
-            cn2, cur2 = conectar_db(), None
-            try:
-                cur2 = cn2.cursor()
-                cur2.execute(
-                    """
-                    INSERT INTO registros_usuarios (
-                      item,grupo,concepto_gasto,imputacion_raw,descripcion,
-                      ger_neg,centro_gestor,pec,
-                      id_recurso,proyecto,pospre,
-                      cantidad,valor_unitario,total
-                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    """,
-                    (
-                        item, p["grupo"], conc_txt, pred, desc,
-                        p["ger_neg"], p["centro"], p["pec"],
-                        p["id_recurso"], p["proyecto"], p["pospre"],
-                        cantidad, valor_u, cantidad*valor_u
-                    )
+            cn2  = conectar_db()
+            cur2 = cn2.cursor()
+            cur2.execute(
+                """
+                INSERT INTO registros_usuarios (
+                  item,grupo,concepto_gasto,imputacion_raw,descripcion,
+                  ger_neg,centro_gestor,pec,
+                  id_recurso,proyecto,pospre,
+                  cantidad,valor_unitario,total
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    item, p["grupo"], concepto, pred, descripcion,
+                    p["ger_neg"], p["centro"], p["pec"],
+                    p["id_recurso"], p["proyecto"], p["pospre"],
+                    cantidad, valor_unitario, valor_total
                 )
-            finally:
-                if cur2: cur2.close()
-                cn2.close()
+            )
+            cn2.commit()
+            cur2.close()
+            cn2.close()
 
-            # 3.4 Apéndelo con el id en session_state
-            nueva_fila = pd.DataFrame([{
+            # 5.4) Añadir al DataFrame de sesión con el ID real
+            nueva = pd.DataFrame([{
                 "id":             inserted_id,
                 "item":           item,
                 "categoria":      categoria,
                 "grupo":          grupo,
                 "centro_gestor":  centro,
                 "unidad_codigo":  unidad,
-                "concepto_gasto": conc_txt,
-                "descripcion":    desc,
+                "concepto_gasto": concepto,
+                "descripcion":    descripcion,
                 "cantidad":       cantidad,
-                "valor_unitario": valor_u,
-                "fecha_inicio":   str(fecha_i),
+                "valor_unitario": valor_unitario,
+                "fecha_inicio":   str(fecha_inicio),
                 "created_by":     st.session_state["usuario"],
                 "imputacion":     pred
             }])
             st.session_state["datos"] = pd.concat(
-                [st.session_state["datos"], nueva_fila], ignore_index=True
+                [st.session_state["datos"], nueva], ignore_index=True
             )
 
-            # 3.5 Contador y rerun
+            # 5.5) Incrementar contador y recargar
             st.session_state["contador_item"] += 1
-            st.success(f"✅ Registro #{inserted_id} guardado con imputación {pred}")
+            st.success(f"✅ Registro #{inserted_id} guardado (imputación {pred})")
             st.rerun()
 
-        # 4) Mostrar tabla de sesión (con id e imputación)
+        # 6) Mostrar tabla de la sesión
         if not st.session_state["datos"].empty:
             st.subheader("📋 Registros de esta sesión")
             st.dataframe(st.session_state["datos"], use_container_width=True)
+
 
 
     # — BUSCAR —
@@ -911,6 +923,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
