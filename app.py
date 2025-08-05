@@ -755,7 +755,7 @@ with tab1:
     elif accion == "Ver Todo":
         if st.session_state["usuario"] == "admin":
             
-            st.markdown("<h4>📋 Todos los Registros</h4>", unsafe_allow_html=True
+            st.markdown("<h4>📋 Todos los Registros</h4>", unsafe_allow_html=True)
             cn = conectar_db()
             df = pd.read_sql("SELECT * FROM presupuesto_registros ORDER BY id DESC", cn)
             cn.close()
@@ -770,7 +770,7 @@ with tab1:
     
     if accion == "Descargar":
         
-        st.markdown("<h4>🔽 Descargar F-004</h4>", unsafe_allow_html=True
+        st.markdown("<h4>🔽 Descargar F-004</h4>", unsafe_allow_html=True)
         # 1) Traer los datos
         cn = conectar_db()
         df = pd.read_sql("SELECT * FROM registros_usuarios", cn)
@@ -881,7 +881,7 @@ with tab2:
     # 3) Gráfica de barras de Ingresos vs Gastos
     # 3) Gráfica de barras de Ingresos vs Gastos
     
-    st.markdown("<h4>📊 Ingresos vs Gastos por Unidad</h4>", unsafe_allow_html=True
+    st.markdown("<h4>📊 Ingresos vs Gastos por Unidad</h4>", unsafe_allow_html=True)
     import numpy as np
 
     fig1, ax1 = plt.subplots()
@@ -902,7 +902,7 @@ with tab2:
     st.markdown("---")
     # Gráfico 2: Por Concepto de Gasto — barras **horizontales**
     
-    st.markdown("<h4>📊 Por Concepto de Gasto</h4>", unsafe_allow_html=True
+    st.markdown("<h4>📊 Por Concepto de Gasto</h4>", unsafe_allow_html=True)
     df_regs = load_user_records(st.session_state["usuario"])
     df_regs["Gasto"] = df_regs["cantidad"] * df_regs["valor_unitario"]
     df_concept = (
@@ -928,6 +928,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
