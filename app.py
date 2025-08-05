@@ -878,7 +878,7 @@ with tab2:
     )
     ax1.set_ylabel("Miles de pesos")
     ax1.set_xticks(range(len(df_mia)))
-    ax1.set_xticklabels(df_mia['Unidad'], rotation=45, ha='right')
+    ax1.set_xticklabels(df_mia['Unidad'], rotation=180, ha='right')
     ax1.legend()
     st.pyplot(fig1)
 
@@ -912,6 +912,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
