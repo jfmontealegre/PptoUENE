@@ -600,7 +600,8 @@ with tab1:
 
     # — BUSCAR —
     elif accion == "Buscar":
-        st.header("🔍 Buscar Registro")
+        
+        st.markdown("<h4>🔍 Buscar Registro</h4>", unsafe_allow_html=True)
         id_buscar = st.text_input("Ingrese ID de registro")
         if st.button("Buscar"):
             try:
@@ -616,7 +617,8 @@ with tab1:
                 st.error(f"Error: {e}")
     
     elif accion == "Editar":
-        st.header("✏️ Editar Registro")
+        
+        st.markdown("<h4>✏️ Editar Registro</h4>", unsafe_allow_html=True)
         id_ed = st.text_input("ID a editar", key="id_ed")
     
         load_flag = f"loaded_{id_ed}"
@@ -721,7 +723,8 @@ with tab1:
 
         # — ELIMINAR —
         elif accion == "Eliminar":
-            st.header("🗑️ Eliminar Registro")
+            
+            st.markdown("<h4>🗑️ Eliminar Registro</h4>", unsafe_allow_html=True)
             id_del = st.text_input("ID a eliminar", key="id_del")
             if st.button("Eliminar", key="btn_eliminar"):
                 try:
@@ -751,7 +754,8 @@ with tab1:
     # — VER TODO —
     elif accion == "Ver Todo":
         if st.session_state["usuario"] == "admin":
-            st.header("📋 Todos los Registros")
+            
+            st.markdown("<h4>📋 Todos los Registros</h4>", unsafe_allow_html=True
             cn = conectar_db()
             df = pd.read_sql("SELECT * FROM presupuesto_registros ORDER BY id DESC", cn)
             cn.close()
@@ -765,8 +769,8 @@ with tab1:
             st.dataframe(df, use_container_width=True)
     
     if accion == "Descargar":
-        st.header("🔽 Descargar todos los registros de usuarios")
-
+        
+        st.markdown("<h4>🔽 Descargar F-004</h4>", unsafe_allow_html=True
         # 1) Traer los datos
         cn = conectar_db()
         df = pd.read_sql("SELECT * FROM registros_usuarios", cn)
@@ -818,7 +822,7 @@ with tab1:
 # — Tab Dashboard —
 with tab2:
     
-    st.markdown("<h3>📈 Visualización Dashboard</h3>", unsafe_allow_html=True)
+    st.markdown("<h4>📈 Visualización Dashboard</h4>", unsafe_allow_html=True)
     # Introducción breve
     st.markdown(
         """
@@ -876,8 +880,8 @@ with tab2:
   
     # 3) Gráfica de barras de Ingresos vs Gastos
     # 3) Gráfica de barras de Ingresos vs Gastos
-    st.subheader("📊 Ingresos vs Gastos por Unidad")
- 
+    
+    st.markdown("<h4>📊 Ingresos vs Gastos por Unidad</h4>", unsafe_allow_html=True
     import numpy as np
 
     fig1, ax1 = plt.subplots()
@@ -897,7 +901,8 @@ with tab2:
 
     st.markdown("---")
     # Gráfico 2: Por Concepto de Gasto — barras **horizontales**
-    #st.subheader("📊 Por Concepto de Gasto")
+    
+    st.markdown("<h4>📊 Por Concepto de Gasto</h4>", unsafe_allow_html=True
     df_regs = load_user_records(st.session_state["usuario"])
     df_regs["Gasto"] = df_regs["cantidad"] * df_regs["valor_unitario"]
     df_concept = (
@@ -923,6 +928,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
