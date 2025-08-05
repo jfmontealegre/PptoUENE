@@ -885,7 +885,7 @@ with tab2:
     st.markdown("---")
 
     # 4) Gasto por Concepto de Gasto
-    st.subheader("📊 Gasto por Concepto de Gasto")
+    st.subheader("📊 Por Concepto de Gasto")
     # Carga tus registros y agrupa
     df_regs = load_user_records(st.session_state["usuario"])
     # Calcula gasto total por concepto
@@ -912,6 +912,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
