@@ -903,7 +903,7 @@ with tab2:
         df_concept['Gasto'] / 1_000
     )
     ax2.set_ylabel("Gasto (miles de pesos)")
-    ax2.set_xticklabels(df_concept['concepto_gasto'], rotation=45, ha='right')
+    ax2.set_xticklabels(df_concept['concepto_gasto'], rotation=0, ha='center')
     st.pyplot(fig2)
 
     st.markdown(
@@ -912,6 +912,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
