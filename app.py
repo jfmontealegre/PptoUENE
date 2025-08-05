@@ -851,7 +851,8 @@ with tab2:
     total_sal = df_mia['Saldo'].sum()
 
     st.markdown("---")
-    st.subheader("🔑 Tus Indicadores Clave (en miles)")
+    
+    st.markdown("<h4>🔑 Tus Indicadores Clave (en miles)</h4>", unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     c1.metric(
         "Ingresos Asignados",
@@ -928,6 +929,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
