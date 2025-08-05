@@ -802,84 +802,117 @@ with tab1:
         )
 
 # — Tab Dashboard —
+# — Tab Dashboard —
 with tab2:
     st.header("📈 Visualización Dashboard")
 
-    # 1) Introducción narrativa
+    # Introducción breve
     st.markdown(
         """
         Bienvenido al **Dashboard Presupuestal UENE 2026**.  
-        Aquí podrás explorar de un vistazo cómo van **tus** ingresos y gastos, 
-        identificar rápidamente tu saldo y profundizar en los detalles cuando lo necesites.
+        Aquí verás tus KPIs en miles y, además, un análisis de tus gastos 
+        agrupados por concepto para tomar decisiones más informadas.
         """
     )
 
-    # 2) Carga y prepara datos de todas las unidades
+    # 1) Datos de flujo por unidad (ingresos, gastos, saldo)
     ingresos_df = load_ingresos().rename(columns={'centro':'Unidad','ingreso':'Ingresos'})
     gastos_df   = load_gastos().rename(columns={'centro':'Unidad','gastos':'Gastos'})
     df_flow     = ingresos_df.merge(gastos_df, on='Unidad', how='left').fillna(0)
     df_flow['Saldo'] = df_flow['Ingresos'] - df_flow['Gastos']
 
-    # 3) Filtra sólo tu(s) unidad(es)
+    # Filtra únicamente tus unidades
     mis_unidades = obtener_unidades(st.session_state["usuario"])
-    df_mia = df_flow[df_flow['Unidad'].isin(mis_unidades)]
+    df_mia       = df_flow[df_flow['Unidad'].isin(mis_unidades)]
     if df_mia.empty:
-        st.info("Aún no tienes ingresos/gastos registrados para tus unidades.")
+        st.info("Aún no tienes registros de ingresos/gastos para tus unidades.")
         st.stop()
 
-    # 4) KPIs de tu(s) unidad(es)
+    # 2) KPIs en miles (k)
     total_ing = df_mia['Ingresos'].sum()
     total_gas = df_mia['Gastos'].sum()
     total_sal = df_mia['Saldo'].sum()
 
     st.markdown("---")
-    st.subheader("🔑 Tus Indicadores Clave")
+    st.subheader("🔑 Tus Indicadores Clave (en miles)")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Ingresos Asignados", f"${total_ing:,.0f}")
-    c2.metric("Gastos Registrados", f"${total_gas:,.0f}")
-    c3.metric("Saldo Disponible",    f"${total_sal:,.0f}",
-              f"{'👍 Positivo' if total_sal>=0 else '⚠️ Negativo'}")
+    c1.metric(
+        "Ingresos Asignados",
+        f"{total_ing/1_000:,.1f}k",
+        help="Suma de ingresos asignados (en miles)"
+    )
+    c2.metric(
+        "Gastos Registrados",
+        f"{total_gas/1_000:,.1f}k",
+        help="Suma de gastos registrados (en miles)"
+    )
+    c3.metric(
+        "Saldo Disponible",
+        f"{total_sal/1_000:,.1f}k",
+        f"{'👍 Positivo' if total_sal>=0 else '⚠️ Negativo'}",
+        help="Balance entre ingresos y gastos (en miles)"
+    )
 
-    # Mensaje según saldo
     if total_sal < 0:
-        st.warning("⚠️ Tu saldo es negativo. Revisa tus gastos.")
+        st.warning("⚠️ Tu saldo es negativo. Revisa tus gastos por concepto.")
     else:
         st.success("✅ Tu saldo es positivo. ¡Buen control del presupuesto!")
 
     st.markdown("---")
 
-    # 5) Gráfica de tu(s) unidad(es)
-    st.subheader("📊 Ingresos vs Gastos por Unidad")
+    # 3) Gráfica de barras de Ingresos vs Gastos
+    st.subheader("📊 Ingresos vs Gastos por Unidad (en miles)")
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots()
-    ax.bar(df_mia['Unidad'], df_mia['Ingresos'], label="Ingresos")
-    ax.bar(df_mia['Unidad'], df_mia['Gastos'], bottom=df_mia['Ingresos'], label="Gastos")
-    ax.set_ylabel("Pesos ($)")
-    ax.set_xticks(range(len(df_mia)))
-    ax.set_xticklabels(df_mia['Unidad'], rotation=45, ha='right')
-    ax.legend()
-    st.pyplot(fig)
-
-    st.markdown(
-        """
-        Esta gráfica refleja exclusivamente el comportamiento de **tus** unidades.  
-        Compara lo asignado (azul) con lo consumido (naranja) y asegúrate de no exceder el presupuesto.
-        """
+    fig1, ax1 = plt.subplots()
+    ax1.bar(
+        df_mia['Unidad'], 
+        df_mia['Ingresos'] / 1_000, 
+        label="Ingresos"
     )
+    ax1.bar(
+        df_mia['Unidad'], 
+        df_mia['Gastos'] / 1_000, 
+        bottom=df_mia['Ingresos'] / 1_000, 
+        label="Gastos"
+    )
+    ax1.set_ylabel("Miles de pesos")
+    ax1.set_xticks(range(len(df_mia)))
+    ax1.set_xticklabels(df_mia['Unidad'], rotation=45, ha='right')
+    ax1.legend()
+    st.pyplot(fig1)
 
     st.markdown("---")
 
-    # 6) Detalle de tu(s) unidad(es)
-    st.subheader("📋 Detalle por Unidad")
-    st.dataframe(
-        df_mia.style.format({
-            "Ingresos": "${:,.0f}",
-            "Gastos":   "${:,.0f}",
-            "Saldo":    "${:,.0f}"
-        }),
-        use_container_width=True
+    # 4) Gasto por Concepto de Gasto
+    st.subheader("📊 Gasto por Concepto de Gasto")
+    # Carga tus registros y agrupa
+    df_regs = load_user_records(st.session_state["usuario"])
+    # Calcula gasto total por concepto
+    df_regs['Gasto'] = df_regs['cantidad'] * df_regs['valor_unitario']
+    df_concept = (
+        df_regs.groupby('concepto_gasto')['Gasto']
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
     )
+    # Gráfica de barras
+    fig2, ax2 = plt.subplots()
+    ax2.bar(
+        df_concept['concepto_gasto'], 
+        df_concept['Gasto'] / 1_000
+    )
+    ax2.set_ylabel("Gasto (miles de pesos)")
+    ax2.set_xticklabels(df_concept['concepto_gasto'], rotation=45, ha='right')
+    st.pyplot(fig2)
+
+    st.markdown(
+        """
+        Aquí puedes ver en qué conceptos se está concentrando tu gasto. 
+        Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
+        """
+    )
+
 
 
 
