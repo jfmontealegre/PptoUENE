@@ -860,31 +860,7 @@ with tab2:
 
     st.markdown("---")
 
-    # 3) Gráfica de barras de Ingresos vs Gastos
-    st.subheader("📊 Ingresos vs Gastos por Unidad (en miles)")
-    import matplotlib.pyplot as plt
-
-    fig1, ax1 = plt.subplots()
-    ax1.bar(
-        df_mia['Unidad'], 
-        df_mia['Ingresos'] / 1_000, 
-        label="Ingresos"
-    )
-    ax1.bar(
-        df_mia['Unidad'], 
-        df_mia['Gastos'] / 1_000, 
-        bottom=df_mia['Ingresos'] / 1_000, 
-        label="Gastos"
-    )
-    ax1.set_ylabel("Miles de pesos")
-    ax1.set_xticks(range(len(df_mia)))
-    ax1.set_xticklabels(df_mia['Unidad'], rotation=0, ha='center')
-    ax1.legend()
-    st.pyplot(fig1)
-
-    st.markdown("---")
-
-    # 4) Gasto por Concepto de Gasto
+  
     # 3) Gráfica de barras de Ingresos vs Gastos
     st.subheader("📊 Ingresos vs Gastos por Unidad")
  
@@ -932,6 +908,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
