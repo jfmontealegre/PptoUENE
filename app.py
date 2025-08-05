@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime
 import pytz
 import joblib
+import matplotlib.pyplot as plt
 
 import sklearn.compose._column_transformer as _ct
 
@@ -910,6 +911,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
