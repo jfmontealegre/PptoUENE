@@ -862,6 +862,7 @@ with tab2:
 
   
     # 3) Gráfica de barras de Ingresos vs Gastos
+    # 3) Gráfica de barras de Ingresos vs Gastos
     st.subheader("📊 Ingresos vs Gastos por Unidad")
  
     import numpy as np
@@ -880,7 +881,8 @@ with tab2:
 
     plt.tight_layout()
     st.pyplot(fig1)
-    
+
+    st.markdown("---")
     # Gráfico 2: Por Concepto de Gasto — barras **horizontales**
     #st.subheader("📊 Por Concepto de Gasto")
     df_regs = load_user_records(st.session_state["usuario"])
@@ -908,6 +910,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
