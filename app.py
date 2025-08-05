@@ -449,7 +449,7 @@ tab1, tab2 = st.tabs(["📑 Presupuesto", "📊 Dashboard"])
 # — Tab Presupuesto
 with tab1:
     if accion == "Agregar":
-        st.markdown("<h3>➕ Agregar Registro Presupuestal</h3>", unsafe_allow_html=True)
+        st.markdown("<h4>➕ Agregar Registro Presupuestal</h4>", unsafe_allow_html=True)
 
         # 1) Traer datos fresh de ingresos, gastos y unidades
         ingresos_df = load_ingresos()
@@ -923,6 +923,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
