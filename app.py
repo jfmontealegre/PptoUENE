@@ -10,8 +10,9 @@ from datetime import datetime
 import pytz
 import joblib
 import matplotlib.pyplot as plt
-
 import sklearn.compose._column_transformer as _ct
+import base64
+
 
 class _RemainderColsList(list):
     """Dummy stub para compatibilidad al cargar el ColumnTransformer serializado."""
@@ -190,6 +191,32 @@ def conectar_db():
         # Manejo de errores más explícito
         st.error(f"🔌 Error al conectar a la base de datos: {err}")
         raise
+
+
+def pdf_viewer(pdf_path: str, height: int = 900):
+    """Renderiza un PDF embebido + botón de descarga."""
+    pdf_file = Path(pdf_path)
+    if not pdf_file.is_file():
+        st.error(f"No se encontró el PDF del manual en: {pdf_path}")
+        st.info("Coloca el archivo en esa ruta o corrige el path.")
+        return
+
+    data = pdf_file.read_bytes()
+    # Botón de descarga
+    st.download_button(
+        "⬇️ Descargar Manual (PDF)",
+        data=data,
+        file_name="Manual_Usuario_UENE_2026.pdf",
+        mime="application/pdf",
+        use_container_width=True,
+    )
+    # PDF embebido
+    b64 = base64.b64encode(data).decode("utf-8")
+    st.markdown(
+        f'<iframe src="data:application/pdf;base64,{b64}" '
+        f'width="100%" height="{height}" type="application/pdf"></iframe>',
+        unsafe_allow_html=True,
+    )
 
 # ——————————————————————————————————————————————————————————————————————
 # 5) Validación de credenciales
@@ -474,7 +501,7 @@ def mostrar_sidebar():
         st.rerun()
 
     st.sidebar.markdown("---")
-    opciones = ["Agregar","Buscar","Editar","Eliminar","Ver Todo"]
+    opciones = ["Agregar","Buscar","Editar","Eliminar","Ver Todo", "Manual"]
     if st.session_state["usuario"] == "admin":
         opciones.append("Descargar")
     return st.sidebar.selectbox("🔧 Menú", opciones, key="sidebar_menu")
@@ -508,10 +535,13 @@ with tab1:
         # — Datos base
         ingresos_df = load_ingresos()
         gastos_df   = load_gastos()
+        usuario   = st.session_state["usuario"]
         unidades    = obtener_unidades(st.session_state["usuario"])
         if not unidades:
             st.warning("No tienes unidades asignadas.")
             st.stop()
+
+        multi_unidad = (usuario == "pamunoz") or (len(unidades) > 1)
 
         # Valores 'ocultos' (no se muestran en el formulario)
         grupo  = "21 Funcionamiento"
@@ -555,14 +585,31 @@ with tab1:
                 item = f"GE{st.session_state['contador_item']:04d}"
                 st.text_input("Item", value=item, disabled=True)
 
+                # Grupo fijo
+                grupo = "21 Funcionamiento"
+
                 # Guarda '3.1' en BD si el radio dijo "Excepciones 3.1"
                 categoria_db = "3.1" if categoria == "Excepciones 3.1" else categoria
                 st.caption(f"Categoría seleccionada: **{categoria_db}**")
 
-                conceptos = obtener_conceptos(unidad) or ["(sin conceptos disponibles)"]
-                concepto  = st.selectbox("Concepto de Gasto", conceptos, help="Elegir el Concepto de Acuerdo a su Gasto.")
+                # Centro/Unidad (condicional)
+                if multi_unidad:
+                    centro = st.selectbox("Centro Gestor", unidades, key="sel_centro_add")
+                    unidad = st.selectbox("Unidad",       unidades, key="sel_unidad_add")
+                else:
+                    centro = unidades[0]
+                    unidad = unidades[0]
+                    st.text_input("Centro Gestor", value=centro, disabled=True)
+                    st.text_input("Unidad",       value=unidad, disabled=True)
+
+                # Tomamos SOLO el código para filtrar conceptos (la tabla tiene códigos)
+                unidad_cod = unidad.split(" ", 1)[0]
+
+                conceptos = obtener_conceptos(unidad_cod) or ["(sin conceptos disponibles)"]
+                concepto  = st.selectbox("Concepto de Gasto", conceptos, help="Elegir el Concepto de acuerdo a su gasto.")
                 descripcion = st.text_area("Descripción", placeholder="Escribe una descripción breve y clara del gasto…", height=110)
 
+            
             with c2:
                 cantidad   = st.number_input("Cantidad", min_value=1, value=1, key="cant_add")
                 valor_unit = st.number_input("Valor Unitario", min_value=0.0, format="%.2f", key="vu_add")
@@ -920,7 +967,47 @@ with tab1:
                 data=csv,
                 file_name="registros_usuarios.csv",
                 mime="text/csv"
-            )    
+            )
+    
+    elif accion == "Manual":
+        st.markdown("<h3>📘 Manual de Usuario – UENE 2026</h3>", unsafe_allow_html=True)
+
+        tab_guia, tab_pdf, tab_faq = st.tabs(["Guía rápida", "Manual (PDF)", "FAQ"])
+
+        with tab_guia:
+            st.markdown("""
+    **Lo esencial en 2 minutos**
+
+    1. **Inicia sesión** con tu usuario EMCALI.  
+    2. Ve a **Agregar** → completa *Categoría, Unidad, Concepto*, *Descripción*, *Cantidad* y *Valor*.  
+    3. Si la **fecha es enero**, marca la confirmación (LEY DE GARANTÍAS).  
+    4. Pulsa **Guardar e Imputar** para registrar y ver la **imputación sugerida**.  
+    5. Revisa **Ingreso / Gastos / Saldo** por unidad en el **sidebar**.  
+    6. En **📊 Dashboard** ves KPIs y análisis por concepto.  
+    7. **Buscar / Editar / Eliminar / Ver Todo** desde el menú lateral.
+            """)
+
+        with tab_pdf:
+            # Ajusta la ruta si guardaste el PDF en otro lugar
+            pdf_viewer("assets/manual_uene.pdf", height=900)
+
+        with tab_faq:
+            st.markdown("""
+    **Preguntas Frecuentes**
+
+    - **No veo Concepto de Gasto para mi unidad**  
+    Verifica en *usuarios_unidades* que tu usuario tenga esa unidad asignada, y en *unidad_concepto_gasto* que existan conceptos.
+
+    - **No se habilita “Guardar e Imputar”**  
+    Asegúrate de que el total no exceda el saldo disponible y, si tu **fecha es enero**, marca la confirmación.
+
+    - **¿Cómo descargo mis registros?**  
+    Ve a **Ver Todo** y usa el menú del dataframe (tres puntos) para exportar.
+
+    - **Excepciones 3.1**  
+    Corresponden a: 1) Licitaciones  2) Compra de activos eléctricos  
+    3) Compra de energía  4) Suscripciones  5) Plataformas SAM.
+            """)
 
 # — Tab Dashboard —
 with tab2:
