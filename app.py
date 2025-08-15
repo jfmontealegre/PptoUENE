@@ -1028,3 +1028,4 @@ with tab2:
         Aquí puedes ver en qué conceptos se está concentrando tu gasto. 
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
+    )
