@@ -45,7 +45,7 @@ def get_flag(name: str, default: bool=False) -> bool:
 MAINT = get_flag("UENE_MAINTENANCE", False)
 
 if MAINT:
-    st.warning("🔒 La aplicación está en **Desactivada**: operaciones de escritura deshabilitadas.")
+    st.warning("🔒 La aplicación está **Desactivada**: operaciones de escritura deshabilitadas.")
 
 
 # 1b) Carga del modelo entrenado
@@ -522,8 +522,8 @@ accion = mostrar_sidebar()
 
 # Cortafuegos de acciones de escritura cuando hay mantenimiento
 if MAINT and accion in ("Agregar","Editar","Eliminar"):
-st.error("🛠️ Esta acción está temporalmente suspendida.")
-st.stop()
+    st.error("🛠️ Esta acción está temporalmente suspendida.")
+    st.stop()
 
 
 # — Título y tabs
@@ -1066,6 +1066,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
