@@ -24,6 +24,17 @@ _ct._RemainderColsList = _RemainderColsList
 # 1) Carga de .env
 load_dotenv(find_dotenv())
 
+
+# — MODO MANTENIMIENTO —
+import os
+MAINT = os.getenv("UENE_MAINTENANCE", "0") == "1"
+
+
+# Aviso global visible para todos
+if MAINT:
+st.warning("🔒 La aplicación está en **mantenimiento**: operaciones de escritura deshabilitadas.")
+
+
 # 1b) Carga del modelo entrenado
 @st.cache_resource
 def load_model():
@@ -1029,3 +1040,4 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
