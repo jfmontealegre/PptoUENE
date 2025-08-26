@@ -45,7 +45,7 @@ def get_flag(name: str, default: bool=False) -> bool:
 MAINT = get_flag("UENE_MAINTENANCE", False)
 
 if MAINT:
-    st.warning("🔒 La aplicación está en **mantenimiento**: operaciones de escritura deshabilitadas.")
+    st.warning("🔒 La aplicación está en **Desactivada**: operaciones de escritura deshabilitadas.")
 
 
 # 1b) Carga del modelo entrenado
@@ -502,7 +502,7 @@ def mostrar_sidebar():
     "Agregar","Cargar Excel","Buscar","Editar","Eliminar","Ver Todo","Manual"
     ]
     if st.session_state["usuario"] == "admin":
-    opciones.append("Descargar")
+        opciones.append("Descargar")
     
     
     # ⬇️ Solo-lectura en mantenimiento
@@ -521,8 +521,8 @@ if not st.session_state["logueado"]:
 accion = mostrar_sidebar()
 
 # Cortafuegos de acciones de escritura cuando hay mantenimiento
-if MAINT and accion in ("Agregar","Editar","Eliminar","Cargar Excel","Descargar"):
-st.error("🛠️ Mantenimiento en curso. Esta acción está temporalmente suspendida.")
+if MAINT and accion in ("Agregar","Editar","Eliminar"):
+st.error("🛠️ Esta acción está temporalmente suspendida.")
 st.stop()
 
 
@@ -1066,6 +1066,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
