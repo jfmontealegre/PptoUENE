@@ -26,13 +26,26 @@ load_dotenv(find_dotenv())
 
 
 # — MODO MANTENIMIENTO —
-import os
-MAINT = os.getenv("UENE_MAINTENANCE", "0") == "1"
+def get_flag(name: str, default: bool=False) -> bool:
+    # 1) Intentar en st.secrets
+    try:
+        val = st.secrets[name]
+    except Exception:
+        val = None
+    # 2) Fallback a variable de entorno
+    if val is None:
+        val = os.getenv(name)
 
+    if val is None:
+        return default
+    if isinstance(val, bool):
+        return val
+    return str(val).strip().lower() in ("1", "true", "yes", "on")
 
-# Aviso global visible para todos
+MAINT = get_flag("UENE_MAINTENANCE", False)
+
 if MAINT:
-st.warning("🔒 La aplicación está en **mantenimiento**: operaciones de escritura deshabilitadas.")
+    st.warning("🔒 La aplicación está en **mantenimiento**: operaciones de escritura deshabilitadas.")
 
 
 # 1b) Carga del modelo entrenado
@@ -1040,4 +1053,5 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
