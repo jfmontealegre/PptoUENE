@@ -505,11 +505,11 @@ def mostrar_sidebar():
         opciones.append("Descargar")
     
     
-    # ⬇️ Solo-lectura en mantenimiento
+    #Solo-lectura en mantenimiento
     if MAINT:
-    opciones = [o for o in opciones if o in ("Buscar","Ver Todo","Manual")]
-    
-    
+        opciones = [o for o in opciones if o in ("Buscar","Ver Todo","Manual")]
+        
+        
     return st.sidebar.selectbox("🔧 Menú", opciones, key="sidebar_menu")
 
 # ——————————————————————————————————————————————————————————————————————
@@ -1066,6 +1066,7 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
 
