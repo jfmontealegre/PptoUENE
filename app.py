@@ -498,9 +498,18 @@ def mostrar_sidebar():
         st.rerun()
 
     st.sidebar.markdown("---")
-    opciones = ["Agregar","Buscar","Editar","Eliminar","Ver Todo"]
+    opciones = [
+    "Agregar","Cargar Excel","Buscar","Editar","Eliminar","Ver Todo","Manual"
+    ]
     if st.session_state["usuario"] == "admin":
-        opciones.append("Descargar")
+    opciones.append("Descargar")
+    
+    
+    # ⬇️ Solo-lectura en mantenimiento
+    if MAINT:
+    opciones = [o for o in opciones if o in ("Buscar","Ver Todo","Manual")]
+    
+    
     return st.sidebar.selectbox("🔧 Menú", opciones, key="sidebar_menu")
 
 # ——————————————————————————————————————————————————————————————————————
@@ -511,6 +520,10 @@ if not st.session_state["logueado"]:
 
 accion = mostrar_sidebar()
 
+# Cortafuegos de acciones de escritura cuando hay mantenimiento
+if MAINT and accion in ("Agregar","Editar","Eliminar","Cargar Excel","Descargar"):
+st.error("🛠️ Mantenimiento en curso. Esta acción está temporalmente suspendida.")
+st.stop()
 
 
 # — Título y tabs
@@ -1053,5 +1066,6 @@ with tab2:
         Ordenados de mayor a menor, estos te ayudan a identificar partidas clave.
         """
     )
+
 
 
